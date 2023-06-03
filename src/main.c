@@ -6,7 +6,7 @@
 #define APP_NAME      "Griffl"
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
-#define ZOOM_FACTOR   20
+#define ZOOM_FACTOR   5
 
 #define STROKE_WIDTH  5
 
@@ -72,17 +72,13 @@ void drawPixel(uint32_t * pixels, int x, int y, uint32_t color, uint8_t brushSiz
         int_fast8_t endValueY = (y < canvasHeight - 2) ? 3 : canvasHeight - y;
         for (int_fast8_t i = startValueY; i < endValueY; i++) {
             if (i == -2 || i == 2) {
-                // X Bounds check is not working properly
                 int_fast8_t startValueX = (x > 1) ? -1 : -x;
-                int_fast8_t endValueX = (x < canvasWidth - 2) ? 2 : canvasWidth - x;
-                for (int_fast8_t j = startValueX; j < endValueX; j++) {
+                for (int_fast8_t j = startValueX; j < 2 && j + x < canvasWidth; j++) {
                     pixels[(y + i) * canvasWidth + x + j] = color;
                 }
             } else {
-                // X Bounds check is not working properly
                 int_fast8_t startValueX = (x > 2) ? -2 : -x;
-                int_fast8_t endValueX = (x < canvasWidth - 2) ? 3 : canvasWidth - x;
-                for (int_fast8_t j = -2; j < 3; j++) {
+                for (int_fast8_t j = startValueX; j < 3 && j + x < canvasWidth; j++) {
                     pixels[(y + i) * canvasWidth + x + j] = color;
                 }
             }
