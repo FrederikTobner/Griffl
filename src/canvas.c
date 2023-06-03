@@ -30,16 +30,13 @@ switch (brushSize) {
         }
         break;
     case 5:
-        // Bounds check is not working properly
-        int_fast8_t startValueY = (y > 2) ? -2 : -y;
-        int_fast8_t endValueY = (y < canvas->height - 2) ? 3 : canvas->height - y;
-        for (int_fast8_t i = startValueY; i < endValueY; i++) {
+        for (int8_t i = (y > 2) ? -2 : -y; i < (y < canvas->height - 2) ? 3 : canvas->height - y; i++) {
             if (i == -2 || i == 2) {
-                for (int_fast8_t j = (x > 1) ? -1 : -x; j < 2 && j + x < canvas->width; j++) {
+                for (int8_t j = (x > 1) ? -1 : -x; j < 2 && j + x < canvas->width; j++) {
                     canvas->pixels[(y + i) * canvas->width + x + j] = color;
                 }
             } else {
-                for (int_fast8_t j = (x > 2) ? -2 : -x; j < 3 && j + x < canvas->width; j++) {
+                for (int8_t j = (x > 2) ? -2 : -x; j < 3 && j + x < canvas->width; j++) {
                     canvas->pixels[(y + i) * canvas->width + x + j] = color;
                 }
             }
