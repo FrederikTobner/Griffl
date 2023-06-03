@@ -1,0 +1,43 @@
+name: CodeQL
+
+on:
+  schedule:
+    - cron: '0 9 * * Sat' # At 9am UTC at every saturday
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ${{matrix.operatingsystems}}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]
+        operatingsystems: [windows-latest] 
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Configuring CMake 
+      run: |
+       echo "Configuring CMake"
+       cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+    - name: Build Griffl 
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:${{matrix.language}}"

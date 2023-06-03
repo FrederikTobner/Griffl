@@ -1,8 +1,10 @@
 set(GRIFFL_SOURCE_FILES
 main.c
+canvas.c
 )
 
 set(GRIFFL_HEADER_FILES
+canvas.h
 )
 
 add_executable(${PROJECT_NAME} ${GRIFFL_SOURCE_FILES} ${GRIFFL_HEADER_FILES})
