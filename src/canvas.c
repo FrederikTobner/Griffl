@@ -30,7 +30,8 @@ switch (brushSize) {
         }
         break;
     case 5:
-        for (int8_t i = (y > 2) ? -2 : -y; i < (y < canvas->height - 2) ? 3 : canvas->height - y; i++) {
+        int8_t endValueY = (y < canvas->height - 2) ? 3 : canvas->height - y;
+        for (int8_t i = (y > 2) ? -2 : -y; i < endValueY; i++) {
             if (i == -2 || i == 2) {
                 for (int8_t j = (x > 1) ? -1 : -x; j < 2 && j + x < canvas->width; j++) {
                     canvas->pixels[(y + i) * canvas->width + x + j] = color;
