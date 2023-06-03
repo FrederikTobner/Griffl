@@ -30,6 +30,7 @@ switch (brushSize) {
         }
         break;
     case 5:
+    {
         int8_t endValueY = (y < canvas->height - 2) ? 3 : canvas->height - y;
         for (int8_t i = (y > 2) ? -2 : -y; i < endValueY; i++) {
             if (i == -2 || i == 2) {
@@ -43,6 +44,7 @@ switch (brushSize) {
             }
         }
         break;
+    }
 
     default:
         break;
