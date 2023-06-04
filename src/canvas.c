@@ -1,5 +1,7 @@
 #include "canvas.h"
 
+#include <SDL_image.h>
+
 canvas_t * canvas_new(uint16_t width, uint16_t height) {
     canvas_t * canvas = malloc(sizeof(canvas_t));
     canvas->width = width;

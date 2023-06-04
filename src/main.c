@@ -1,6 +1,5 @@
 // SDL dependencies
 #include <SDL.h>
-#include <SDL_image.h>
 // Standard library dependencies
 #include <stdbool.h>
 #include <stdio.h>
