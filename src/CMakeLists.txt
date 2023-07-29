@@ -1,11 +1,16 @@
 set(GRIFFL_SOURCE_FILES
 main.c
 canvas.c
+color.c
+griffl_application.c
 input_state.c
 )
 
 set(GRIFFL_HEADER_FILES
 canvas.h
+color.h
+draw_mode.h
+griffl_application.h
 input_state.h
 )
 

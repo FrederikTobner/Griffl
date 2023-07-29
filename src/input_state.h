@@ -1,13 +1,14 @@
-#ifndef INPUT_STATE_H
-#define INPUT_STATE_H
+#ifndef INPUT_STATE_H_
+#define INPUT_STATE_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define LEFT_MOUSE_BUTTON 0x01
 #define RIGHT_CTRL        0x02
 #define LEFT_CTRL         0x04
 
-typedef struct input_state_t input_state_t;
+typedef uint8_t input_state_t;
 
 input_state_t * input_state_new();
 
