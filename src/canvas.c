@@ -2,6 +2,8 @@
 
 #include <SDL_image.h>
 
+#include "common.h"
+
 typedef struct canvas_t {
         uint16_t width;
         uint16_t height;
@@ -9,7 +11,7 @@ typedef struct canvas_t {
 } canvas_t;
 
 canvas_t * canvas_new(uint16_t width, uint16_t height) {
-    canvas_t * canvas = malloc(sizeof(canvas_t));
+    canvas_t * canvas = new (canvas_t);
     if (canvas == NULL) {
         return NULL;
     }
@@ -20,7 +22,7 @@ canvas_t * canvas_new(uint16_t width, uint16_t height) {
     return canvas;
 }
 
-void canvas_draw_free(canvas_t * canvas, int32_t x, int32_t y, uint32_t color, uint8_t brushSize) {
+void canvas_draw_free_hand(canvas_t * canvas, int32_t x, int32_t y, uint32_t color, uint8_t brushSize) {
     switch (brushSize) {
     case 1:
         canvas->pixels[y * canvas->width + x] = color;
@@ -104,6 +106,7 @@ void canvas_save_as_png(const char * file_name, canvas_t * canvas) {
     if (canvas == NULL || file_name == NULL) {
         return;
     }
+    // We create a surface from the pixel array of the canvas so we can save it as a png
     SDL_Surface * surface = SDL_CreateRGBSurfaceFrom(canvas->pixels, canvas->width, canvas->height, 32,
                                                      canvas->width * 4, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
     IMG_SavePNG(surface, file_name);

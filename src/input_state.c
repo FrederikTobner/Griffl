@@ -2,8 +2,10 @@
 
 #include <stdlib.h>
 
+#include "common.h"
+
 input_state_t * input_state_new() {
-    input_state_t * input_state = malloc(sizeof(input_state_t));
+    input_state_t * input_state = new (input_state_t);
     if (input_state == NULL) {
         return NULL;
     }

@@ -2,8 +2,17 @@
 
 #include <stdlib.h>
 
+#include "common.h"
+
+typedef struct color_t {
+        uint8_t alpha;
+        uint8_t red;
+        uint8_t green;
+        uint8_t blue;
+} color_t;
+
 color_t * color_new(uint8_t alpha, uint8_t red, uint8_t green, uint8_t blue) {
-    color_t * color = malloc(sizeof(color_t));
+    color_t * color = new (color_t);
     if (!color) {
         return color;
     }

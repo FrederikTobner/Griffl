@@ -8,8 +8,11 @@
 #define RIGHT_CTRL        0x02
 #define LEFT_CTRL         0x04
 
+/// @brief Models the state of the input (the keyboard and mouse)
 typedef uint8_t input_state_t;
 
+/// @brief  Creates a new input state
+/// @return The new input state or NULL if it could not be created
 input_state_t * input_state_new();
 
 void input_state_destroy(input_state_t * input_state);
