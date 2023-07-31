@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "common.h"
+#include "memory.h"
 
 input_state_t * input_state_new() {
     input_state_t * input_state = new (input_state_t);

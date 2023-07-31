@@ -2,21 +2,25 @@ set(GRIFFL_SOURCE_FILES
 button.c
 canvas.c
 color.c
+fonts.c
 griffl_application.c
 input_state.c
 main.c
 texture.c
+toolbar.c
 )
 
 set(GRIFFL_HEADER_FILES
 button.h
 canvas.h
 color.h
-common.h
 draw_mode.h
+fonts.h
 griffl_application.h
 input_state.h
+memory.h
 texture.h
+toolbar.h
 )
 
 include(../cmake/detect.cmake)

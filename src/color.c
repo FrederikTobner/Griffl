@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "common.h"
+#include "memory.h"
 
 typedef struct color_t {
         uint8_t alpha;

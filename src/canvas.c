@@ -2,7 +2,7 @@
 
 #include <SDL_image.h>
 
-#include "common.h"
+#include "memory.h"
 
 typedef struct canvas_t {
         uint16_t width;

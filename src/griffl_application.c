@@ -6,7 +6,9 @@
 
 #include <SDL.h>
 
-#include "common.h"
+#include "fonts.h"
+#include "memory.h"
+#include "toolbar.h"
 
 #define TOOLBAR_HEIGHT 60
 
@@ -23,6 +25,8 @@ typedef struct griffl_application_t {
         SDL_Texture * canvas_texture;
         SDL_Renderer * renderer;
         SDL_Window * window;
+        toolbar_t * toolbar;
+        fonts_t * fonts;
 } griffl_application_t;
 
 static void griffl_application_handle_events(griffl_application_t * griffl_application);
@@ -88,13 +92,37 @@ griffl_application_t * griffl_application_new(uint16_t window_width, uint16_t wi
         free(griffl_application);
         return NULL;
     }
+    griffl_application->fonts = fonts_create();
+    if (!griffl_application->fonts) {
+        fprintf(stderr, "Could not create fonts!\n");
+        SDL_DestroyTexture(griffl_application->canvas_texture);
+        SDL_DestroyRenderer(griffl_application->renderer);
+        SDL_DestroyWindow(griffl_application->window);
+        canvas_destroy(griffl_application->canvas);
+        input_state_destroy(griffl_application->input_state);
+        free(griffl_application->selected_color);
+        free(griffl_application);
+        return NULL;
+    }
+    griffl_application->toolbar = toolbar_create(griffl_application->renderer, griffl_application->fonts);
+    if (!griffl_application->toolbar) {
+        fprintf(stderr, "Could not create toolbar!\n");
+        fonts_destroy(griffl_application->fonts);
+        SDL_DestroyTexture(griffl_application->canvas_texture);
+        SDL_DestroyRenderer(griffl_application->renderer);
+        SDL_DestroyWindow(griffl_application->window);
+        canvas_destroy(griffl_application->canvas);
+        input_state_destroy(griffl_application->input_state);
+        free(griffl_application->selected_color);
+        free(griffl_application);
+        return NULL;
+    }
     griffl_application->draw_mode = DRAW_MODE_FREEHAND;
-    griffl_application->brush_size = 1;
+    griffl_application->brush_size = brush_size;
     griffl_application->quit = false;
     griffl_application->window_width = window_width;
     griffl_application->window_height = window_height;
     griffl_application->zoom_factor = zoom_factor;
-    griffl_application->brush_size = brush_size;
     // Setting the draw color to a light gray
     SDL_SetRenderDrawColor(griffl_application->renderer, 190, 190, 190, 255);
     return griffl_application;
@@ -104,6 +132,7 @@ void griffl_application_destroy(griffl_application_t * griffl_application) {
     SDL_DestroyTexture(griffl_application->canvas_texture);
     SDL_DestroyRenderer(griffl_application->renderer);
     SDL_DestroyWindow(griffl_application->window);
+    fonts_destroy(griffl_application->fonts);
     canvas_destroy(griffl_application->canvas);
     input_state_destroy(griffl_application->input_state);
     free(griffl_application->selected_color);
@@ -187,6 +216,7 @@ static int griffl_application_update_screen(griffl_application_t * griffl_applic
         printf("SDL could not clear renderer! SDL_Error: %s\n", SDL_GetError());
         return -1;
     }
+    toolbar_render(griffl_application->toolbar, griffl_application->renderer);
     SDL_Rect canvasSrcRect = {0, 0, canvas_get_width(griffl_application->canvas),
                               canvas_get_height(griffl_application->canvas)};
     SDL_Rect canvasDstRect = {0, TOOLBAR_HEIGHT, griffl_application->window_width,

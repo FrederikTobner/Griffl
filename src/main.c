@@ -1,6 +1,7 @@
 // SDL dependencies
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 // Standard library dependencies
 #include <stdbool.h>
 #include <stdio.h>
@@ -15,7 +16,7 @@
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 630
 #define ZOOM_FACTOR   5
-#define BRUSH_COLOR   0xFF0000FF
+#define BRUSH_COLOR   0xFF00FF00
 
 #define STROKE_WIDTH  5
 
@@ -34,7 +35,11 @@ int main(int argc, char ** argv) {
         return EXIT_FAILURE;
     }
     atexit(IMG_Quit);
-
+    if (TTF_Init()) {
+        fprintf(stderr, "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+        return EXIT_FAILURE;
+    }
+    atexit(TTF_Quit);
     griffl_application_t * application =
         griffl_application_new(WINDOW_WIDTH, WINDOW_HEIGHT, ZOOM_FACTOR, BRUSH_COLOR, STROKE_WIDTH);
     if (!application) {
