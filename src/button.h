@@ -15,12 +15,12 @@ typedef enum {
 
 typedef struct button_t button_t;
 
-button_t * button_new(SDL_Texture * icon, int x, int y, int w, int h, SDL_Color buttonBackGroundColor,
-                      SDL_Color buttonBorderColor, int borderWidth);
+button_t * button_new(SDL_Texture * icon, int x, int y, int width, int height, SDL_Color buttonBackGroundColor,
+                      SDL_Color buttonBorderColor, SDL_Color buttonBorderColorMouseOver, int borderWidth);
 
 void button_destroy(button_t * button);
 
-void button_handle_event(button_t * button, SDL_Event * e);
+bool button_handle_event(button_t * button, SDL_Event * e);
 
 void button_render(button_t * button, SDL_Renderer * renderer);
 

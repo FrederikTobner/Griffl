@@ -19,14 +19,15 @@ typedef struct griffl_application_t {
         canvas_t * canvas;
         uint8_t brush_size;
         bool quit;
-        uint16_t window_width;
-        uint16_t window_height;
-        uint8_t zoom_factor;
+        int window_width;
+        int window_height;
+        float zoom_factor;
         SDL_Texture * canvas_texture;
         SDL_Renderer * renderer;
         SDL_Window * window;
         toolbar_t * toolbar;
         fonts_t * fonts;
+        SDL_Window * colorPickerWindow;
 } griffl_application_t;
 
 static void griffl_application_handle_events(griffl_application_t * griffl_application);
@@ -51,15 +52,16 @@ griffl_application_t * griffl_application_new(uint16_t window_width, uint16_t wi
         free(griffl_application);
         return NULL;
     }
-    griffl_application->canvas = canvas_new(window_width / zoom_factor, (window_height - TOOLBAR_HEIGHT) / zoom_factor);
+    griffl_application->canvas = canvas_new(160, 100);
     if (griffl_application->canvas == NULL) {
         input_state_destroy(griffl_application->input_state);
         free(griffl_application->selected_color);
         free(griffl_application);
         return NULL;
     }
-    griffl_application->window = SDL_CreateWindow("Griffl", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                                  window_width, window_height, SDL_WINDOW_RESIZABLE);
+    griffl_application->window =
+        SDL_CreateWindow("Griffl", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_width, window_height,
+                         SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
     if (!griffl_application->window) {
         fprintf(stderr, "SDL could not create window! SDL_Error: %s\n", SDL_GetError());
         canvas_destroy(griffl_application->canvas);
@@ -104,9 +106,10 @@ griffl_application_t * griffl_application_new(uint16_t window_width, uint16_t wi
         free(griffl_application);
         return NULL;
     }
-    griffl_application->toolbar = toolbar_create(griffl_application->renderer, griffl_application->fonts);
-    if (!griffl_application->toolbar) {
-        fprintf(stderr, "Could not create toolbar!\n");
+    griffl_application->colorPickerWindow =
+        SDL_CreateWindow("Color Picker", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_HIDDEN);
+    if (!griffl_application->colorPickerWindow) {
+        fprintf(stderr, "SDL could not create color picker window! SDL_Error: %s\n", SDL_GetError());
         fonts_destroy(griffl_application->fonts);
         SDL_DestroyTexture(griffl_application->canvas_texture);
         SDL_DestroyRenderer(griffl_application->renderer);
@@ -117,6 +120,22 @@ griffl_application_t * griffl_application_new(uint16_t window_width, uint16_t wi
         free(griffl_application);
         return NULL;
     }
+    griffl_application->toolbar =
+        toolbar_create(griffl_application->renderer, griffl_application->fonts, griffl_application->colorPickerWindow);
+    if (!griffl_application->toolbar) {
+        fprintf(stderr, "Could not create toolbar!\n");
+        SDL_DestroyWindow(griffl_application->colorPickerWindow);
+        fonts_destroy(griffl_application->fonts);
+        SDL_DestroyTexture(griffl_application->canvas_texture);
+        SDL_DestroyRenderer(griffl_application->renderer);
+        SDL_DestroyWindow(griffl_application->window);
+        canvas_destroy(griffl_application->canvas);
+        input_state_destroy(griffl_application->input_state);
+        free(griffl_application->selected_color);
+        free(griffl_application);
+        return NULL;
+    }
+
     griffl_application->draw_mode = DRAW_MODE_FREEHAND;
     griffl_application->brush_size = brush_size;
     griffl_application->quit = false;
@@ -132,6 +151,7 @@ void griffl_application_destroy(griffl_application_t * griffl_application) {
     SDL_DestroyTexture(griffl_application->canvas_texture);
     SDL_DestroyRenderer(griffl_application->renderer);
     SDL_DestroyWindow(griffl_application->window);
+    SDL_DestroyWindow(griffl_application->colorPickerWindow);
     fonts_destroy(griffl_application->fonts);
     canvas_destroy(griffl_application->canvas);
     input_state_destroy(griffl_application->input_state);
@@ -157,8 +177,14 @@ static void griffl_application_handle_events(griffl_application_t * griffl_appli
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-        case SDL_QUIT:
-            griffl_application->quit = true;
+        case SDL_WINDOWEVENT:
+            if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
+                if (event.window.windowID == SDL_GetWindowID(griffl_application->window)) {
+                    griffl_application->quit = true;
+                } else if (event.window.windowID == SDL_GetWindowID(griffl_application->colorPickerWindow)) {
+                    SDL_HideWindow(griffl_application->colorPickerWindow);
+                }
+            }
             break;
         case SDL_MOUSEBUTTONUP:
             if (event.button.button == SDL_BUTTON_LEFT) {
@@ -170,19 +196,24 @@ static void griffl_application_handle_events(griffl_application_t * griffl_appli
                 input_state_handle_down(griffl_application->input_state, LEFT_MOUSE_BUTTON);
             }
         case SDL_MOUSEMOTION:
-            if (input_state_is_down(griffl_application->input_state, LEFT_MOUSE_BUTTON)) {
+            {
                 int32_t mouseX = event.motion.x;
                 int32_t mouseY = event.motion.y;
-                // Make sure the cursor is within the window
-                if (mouseX < griffl_application->window_width && mouseY < griffl_application->window_height &&
-                    mouseX > 0 && mouseY > TOOLBAR_HEIGHT) {
-                    canvas_draw_free_hand(griffl_application->canvas, mouseX / griffl_application->zoom_factor,
-                                          (mouseY - TOOLBAR_HEIGHT) / griffl_application->zoom_factor,
-                                          color_as_argb(griffl_application->selected_color),
-                                          griffl_application->brush_size);
+                if (input_state_is_down(griffl_application->input_state, LEFT_MOUSE_BUTTON)) {
+                    // Make sure the cursor is within the window
+                    if (mouseX < griffl_application->window_width && mouseY < griffl_application->window_height &&
+                        mouseX > 0 && mouseY > 50) {
+                        canvas_draw_free_hand(
+                            griffl_application->canvas, (mouseX - 100.0) / griffl_application->zoom_factor,
+                            (mouseY - 50.0) / griffl_application->zoom_factor,
+                            color_as_argb(griffl_application->selected_color), griffl_application->brush_size);
+                    }
                 }
+                if (mouseY < 50 && mouseY > 0) {
+                    toolbar_handle_mouse_event(griffl_application->toolbar, &event);
+                }
+                break;
             }
-            break;
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_RCTRL) {
                 input_state_handle_down(griffl_application->input_state, RIGHT_CTRL);
@@ -216,11 +247,22 @@ static int griffl_application_update_screen(griffl_application_t * griffl_applic
         printf("SDL could not clear renderer! SDL_Error: %s\n", SDL_GetError());
         return -1;
     }
+    SDL_Rect windowSize;
+    SDL_GetWindowSize(griffl_application->window, &griffl_application->window_width,
+                      &griffl_application->window_height);
     toolbar_render(griffl_application->toolbar, griffl_application->renderer);
+    float zoomFactorHeight = (griffl_application->window_height - 50.0) / canvas_get_height(griffl_application->canvas);
+    float zoomFactorWidth = (griffl_application->window_width - 100.0) / canvas_get_width(griffl_application->canvas);
+    if (zoomFactorHeight < zoomFactorWidth) {
+        griffl_application->zoom_factor = zoomFactorHeight;
+    } else {
+        griffl_application->zoom_factor = zoomFactorWidth;
+    }
     SDL_Rect canvasSrcRect = {0, 0, canvas_get_width(griffl_application->canvas),
                               canvas_get_height(griffl_application->canvas)};
-    SDL_Rect canvasDstRect = {0, TOOLBAR_HEIGHT, griffl_application->window_width,
-                              griffl_application->window_height - TOOLBAR_HEIGHT};
+    SDL_Rect canvasDstRect = {100, 50,
+                              canvas_get_width(griffl_application->canvas) * griffl_application->zoom_factor - 10,
+                              canvas_get_height(griffl_application->canvas) * griffl_application->zoom_factor - 10};
     if (SDL_RenderCopy(griffl_application->renderer, griffl_application->canvas_texture, &canvasSrcRect,
                        &canvasDstRect)) {
         printf("SDL could not copy texture to renderer! SDL_Error: %s\n", SDL_GetError());
