@@ -213,7 +213,6 @@ static void griffl_application_handle_event(griffl_application_t * griffl_applic
         break;
     case SDL_MOUSEBUTTONDOWN:
         if (event.button.button == SDL_BUTTON_LEFT) {
-            SDL_Log("Left mouse button down");
             input_state_handle_down(griffl_application->input_state, LEFT_MOUSE_BUTTON);
         }
     case SDL_MOUSEMOTION:
