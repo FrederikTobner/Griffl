@@ -2,6 +2,7 @@ set(GRIFFL_SOURCE_FILES
 button.c
 canvas.c
 color.c
+color_picker.c
 fonts.c
 griffl_application.c
 input_state.c
@@ -14,6 +15,7 @@ set(GRIFFL_HEADER_FILES
 button.h
 canvas.h
 color.h
+color_picker.h
 draw_mode.h
 fonts.h
 griffl_application.h

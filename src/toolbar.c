@@ -8,10 +8,10 @@
 typedef struct toolbar_t {
         button_t * colorpicker;
         SDL_Color toolBarBackgroundColor;
-        SDL_Window * colorPickerWindow;
+        color_picker_t * color_picker;
 } toolbar_t;
 
-toolbar_t * toolbar_create(SDL_Renderer * renderer, fonts_t * fonts, SDL_Window * colorPickerWindow) {
+toolbar_t * toolbar_create(SDL_Renderer * renderer, fonts_t * fonts, color_picker_t * color_picker) {
     toolbar_t * toolbar = new (toolbar_t);
     if (!toolbar) {
         return NULL;
@@ -22,12 +22,12 @@ toolbar_t * toolbar_create(SDL_Renderer * renderer, fonts_t * fonts, SDL_Window 
     SDL_Color buttonBorderColorMouseOver = {0, 255, 0, 255};
     toolbar->colorpicker =
         button_new(texture_load_from_rendered_text(ICON_MD_COLOR_LENS, color, fonts->material_icons, renderer), 5, 5,
-                   50, 50, buttonBackGroundColor, buttonBackGroundColorMouseOver, buttonBorderColorMouseOver, 3);
+                   40, 40, buttonBackGroundColor, buttonBackGroundColorMouseOver, buttonBorderColorMouseOver, 3);
     if (!toolbar->colorpicker) {
         free(toolbar);
         return NULL;
     }
-    toolbar->colorPickerWindow = colorPickerWindow;
+    toolbar->color_picker = color_picker;
     return toolbar;
 }
 
@@ -42,6 +42,6 @@ void toolbar_render(toolbar_t * toolbar, SDL_Renderer * renderer) {
 
 void toolbar_handle_mouse_event(toolbar_t * toolbar, SDL_Event * e) {
     if (button_handle_event(toolbar->colorpicker, e)) {
-        SDL_ShowWindow((toolbar->colorPickerWindow));
+        color_picker_show(toolbar->color_picker);
     }
 }

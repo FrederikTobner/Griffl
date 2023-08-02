@@ -3,11 +3,12 @@
 
 #include <SDL.h>
 
+#include "color_picker.h"
 #include "fonts.h"
 
 typedef struct toolbar_t toolbar_t;
 
-toolbar_t * toolbar_create(SDL_Renderer * renderer, fonts_t * fonts, SDL_Window * colorPickerWindow);
+toolbar_t * toolbar_create(SDL_Renderer * renderer, fonts_t * fonts, color_picker_t * color_picker);
 
 void toolbar_destroy(toolbar_t * toolbar);
 
