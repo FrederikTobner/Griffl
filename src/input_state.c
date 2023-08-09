@@ -4,7 +4,7 @@
 
 #include "memory.h"
 
-input_state_t * input_state_new() {
+input_state_t * input_state_new(void) {
     input_state_t * input_state = new (input_state_t);
     if (input_state == NULL) {
         return NULL;

@@ -6,9 +6,12 @@
 
 #include <SDL.h>
 
+#include "color.h"
+#include "fonts.h"
+
 typedef struct color_picker_t color_picker_t;
 
-color_picker_t * color_picker_new();
+color_picker_t * color_picker_new(fonts_t * fonts, color_t * selected_color);
 
 void color_picker_destroy(color_picker_t * color_picker);
 

@@ -12,6 +12,7 @@
 #include "toolbar.h"
 
 #define TOOLBAR_HEIGHT 50
+#define SIDEBAR_WIDTH  100
 
 typedef struct griffl_application_t {
         draw_mode_t draw_mode;
@@ -109,7 +110,7 @@ griffl_application_t * griffl_application_new(uint16_t window_width, uint16_t wi
         free(griffl_application);
         return NULL;
     }
-    griffl_application->color_picker = color_picker_new();
+    griffl_application->color_picker = color_picker_new(griffl_application->fonts, griffl_application->selected_color);
     if (!griffl_application->color_picker) {
         fprintf(stderr, "SDL could not create color picker window! SDL_Error: %s\n", SDL_GetError());
         fonts_destroy(griffl_application->fonts);
@@ -224,7 +225,7 @@ static void griffl_application_handle_event(griffl_application_t * griffl_applic
                 if (mouseX < griffl_application->window_width && mouseY < griffl_application->window_height &&
                     mouseX > 0 && mouseY > TOOLBAR_HEIGHT) {
                     canvas_draw_free_hand(
-                        griffl_application->canvas, (mouseX - 100.0) / griffl_application->zoom_factor,
+                        griffl_application->canvas, (mouseX - (float)SIDEBAR_WIDTH) / griffl_application->zoom_factor,
                         (mouseY - (float)TOOLBAR_HEIGHT) / griffl_application->zoom_factor,
                         color_as_argb(griffl_application->selected_color), griffl_application->brush_size);
                 }
@@ -272,7 +273,8 @@ static int griffl_application_update_screen(griffl_application_t * griffl_applic
     toolbar_render(griffl_application->toolbar, griffl_application->renderer);
     float zoomFactorHeight =
         (griffl_application->window_height - (float)TOOLBAR_HEIGHT) / canvas_get_height(griffl_application->canvas);
-    float zoomFactorWidth = (griffl_application->window_width - 100.0) / canvas_get_width(griffl_application->canvas);
+    float zoomFactorWidth =
+        (griffl_application->window_width - (float)SIDEBAR_WIDTH) / canvas_get_width(griffl_application->canvas);
     if (zoomFactorHeight < zoomFactorWidth) {
         griffl_application->zoom_factor = zoomFactorHeight;
     } else {
@@ -280,7 +282,7 @@ static int griffl_application_update_screen(griffl_application_t * griffl_applic
     }
     SDL_Rect canvasSrcRect = {0, 0, canvas_get_width(griffl_application->canvas),
                               canvas_get_height(griffl_application->canvas)};
-    SDL_Rect canvasDstRect = {100, TOOLBAR_HEIGHT,
+    SDL_Rect canvasDstRect = {SIDEBAR_WIDTH, TOOLBAR_HEIGHT,
                               canvas_get_width(griffl_application->canvas) * griffl_application->zoom_factor - 10,
                               canvas_get_height(griffl_application->canvas) * griffl_application->zoom_factor - 10};
     if (SDL_RenderCopy(griffl_application->renderer, griffl_application->canvas_texture, &canvasSrcRect,

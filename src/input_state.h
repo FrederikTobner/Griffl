@@ -13,7 +13,7 @@ typedef uint8_t input_state_t;
 
 /// @brief  Creates a new input state
 /// @return The new input state or NULL if it could not be created
-input_state_t * input_state_new();
+input_state_t * input_state_new(void);
 
 void input_state_destroy(input_state_t * input_state);
 

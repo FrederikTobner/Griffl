@@ -16,7 +16,7 @@
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 630
 #define ZOOM_FACTOR   5
-#define BRUSH_COLOR   0xFF00FF00
+#define BRUSH_COLOR   0xFFFF0000
 
 #define STROKE_WIDTH  5
 

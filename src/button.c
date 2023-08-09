@@ -112,11 +112,19 @@ bool button_handle_event(button_t * button, SDL_Event * e) {
 
             case SDL_MOUSEBUTTONDOWN:
                 button->current_state = BUTTON_STATE_MOUSE_DOWN;
+                button->buttonBorderColor = button->buttonBorderColorOutside;
                 return true;
                 break;
 
             case SDL_MOUSEBUTTONUP:
-                button->current_state = BUTTON_STATE_MOUSE_UP;
+                {
+                    if (button->current_state == BUTTON_STATE_MOUSE_DOWN) {
+                        button->current_state = BUTTON_STATE_MOUSE_UP;
+                        return true;
+                    }
+                    break;
+                }
+            default:
                 break;
             }
         }

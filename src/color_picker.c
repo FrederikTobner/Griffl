@@ -4,7 +4,8 @@
 
 #include <SDL_ttf.h>
 
-#include "color.h"
+#include "button.h"
+#include "icons_material_design.h"
 #include "memory.h"
 
 #define COLOR_BAR_WIDTH        30
@@ -13,7 +14,7 @@
 #define COLOR_BAR_SPACE_BOTTOM 40
 #define NUMBER_OF_SECTIONS     6
 #define SEGMENTED              (COLOR_BAR_HEIGHT / NUMBER_OF_SECTIONS)
-#define NUM                    (255.0 / ((float)NUMBER_OF_SECTIONS / (float)NUMBER_OF_SECTIONS))
+#define NUM                    (255.0 / ((float)COLOR_BAR_HEIGHT / (float)NUMBER_OF_SECTIONS))
 
 typedef struct {
         uint32_t x;
@@ -26,6 +27,7 @@ static void color_picker_position_color(color_picker_t * color_picker);
 static void color_picker_color_square(color_picker_t * color_picker);
 static void color_picker_color_square_cross_hairs(color_picker_t * color_picker);
 static bool checkBounds(int xMin, int xMax, int yMin, int yMax, mouse_position_t mousePos);
+static void color_picker_color_of_cross_hairs(color_picker_t * color_picker);
 
 typedef struct color_picker_t {
         SDL_Window * window;
@@ -33,15 +35,18 @@ typedef struct color_picker_t {
         mouse_position_t mouse_position;
         mouse_position_t bound_check_position;
         color_t * selected_color;
+        color_t * cross_hairs_color;
         // Position of mouse (Y-Axis) on vertical color bar
         int32_t position;
         bool left_mouse_button_down;
         bool left_mouse_button_down_square;
+        button_t * ok_button;
+        color_t * selected_color_in_griffl;
 } color_picker_t;
 
 /// @brief Create a new color picker
 /// @return The newly created color picker
-color_picker_t * color_picker_new() {
+color_picker_t * color_picker_new(fonts_t * fonts, color_t * selected_color) {
     color_picker_t * color_picker = new (color_picker_t);
     if (!color_picker) {
         return NULL;
@@ -60,16 +65,34 @@ color_picker_t * color_picker_new() {
         SDL_DestroyWindow(color_picker->window);
         return NULL;
     }
-    color_picker->selected_color = color_new(0, 255, 0, 255);
+    color_picker->selected_color = color_new(255, 255, 0, 0);
     if (!color_picker->selected_color) {
         color_picker_destroy(color_picker);
         SDL_DestroyWindow(color_picker->window);
         SDL_DestroyRenderer(color_picker->renderer);
         return NULL;
     }
+    SDL_Color color = {0xff, 0xff, 0xff, 255};
+    SDL_Color buttonBackGroundColor = {60, 60, 60, 0xFF};
+    SDL_Color buttonBackGroundColorMouseOver = {255, 0, 0, 255};
+    SDL_Color buttonBorderColorMouseOver = {0, 255, 0, 255};
+    color_picker->ok_button = button_new(
+        texture_load_from_rendered_text(ICON_MD_CHECK, color, fonts->material_icons, color_picker->renderer), 480, 505,
+        40, 30, buttonBackGroundColor, buttonBackGroundColorMouseOver, buttonBorderColorMouseOver, 0);
+    if (!color_picker->ok_button) {
+        color_picker_destroy(color_picker);
+        SDL_DestroyWindow(color_picker->window);
+        SDL_DestroyRenderer(color_picker->renderer);
+        free(color_picker->selected_color);
+        return NULL;
+    }
+    color_picker->cross_hairs_color = color_new(255, 0, 0, 0);
     color_picker->mouse_position.x = 0;
     color_picker->mouse_position.y = 0;
     color_picker->position = 0;
+    color_picker->left_mouse_button_down = false;
+    color_picker->left_mouse_button_down_square = false;
+    color_picker->selected_color_in_griffl = selected_color;
     return color_picker;
 }
 
@@ -99,12 +122,30 @@ void color_picker_render(color_picker_t * color_picker) {
     color_picker_position_color(color_picker);
     color_picker_color_square(color_picker);
     color_picker_color_square_cross_hairs(color_picker);
+    color_picker_color_of_cross_hairs(color_picker);
+    SDL_SetRenderDrawColor(color_picker->renderer, color_picker->cross_hairs_color->red,
+                           color_picker->cross_hairs_color->green, color_picker->cross_hairs_color->blue,
+                           color_picker->cross_hairs_color->alpha);
+    SDL_Rect color_preview_rect;
+    color_preview_rect.x = COLOR_BAR_WIDTH + COLOR_BAR_WIDTH_SPACE;
+    color_preview_rect.y = COLOR_BAR_HEIGHT + COLOR_BAR_SPACE_BOTTOM - 35;
+    color_preview_rect.w = 60;
+    color_preview_rect.h = COLOR_BAR_WIDTH;
+    SDL_RenderFillRect(color_picker->renderer, &color_preview_rect);
     SDL_SetRenderDrawColor(color_picker->renderer, 100, 100, 100, 255);
+    button_render(color_picker->ok_button, color_picker->renderer);
     SDL_RenderPresent(color_picker->renderer);
 }
 
 void color_picker_handle_event(color_picker_t * color_picker, SDL_Event event) {
     switch (event.type) {
+        if (button_handle_event(color_picker->ok_button, &event)) {
+            color_picker_hide(color_picker);
+            color_picker->selected_color_in_griffl->red = color_picker->cross_hairs_color->red;
+            color_picker->selected_color_in_griffl->green = color_picker->cross_hairs_color->green;
+            color_picker->selected_color_in_griffl->blue = color_picker->cross_hairs_color->blue;
+            color_picker->selected_color_in_griffl->alpha = color_picker->cross_hairs_color->alpha;
+        }
     case SDL_MOUSEBUTTONUP:
         if (event.button.button == SDL_BUTTON_LEFT) {
             color_picker->left_mouse_button_down = false;
@@ -131,6 +172,10 @@ void color_picker_handle_event(color_picker_t * color_picker, SDL_Event event) {
                             COLOR_BAR_HEIGHT + COLOR_BAR_WIDTH_SPACE + COLOR_BAR_WIDTH,
                             color_picker->bound_check_position)) {
                 color_picker_hide(color_picker);
+                color_picker->selected_color_in_griffl->red = color_picker->cross_hairs_color->red;
+                color_picker->selected_color_in_griffl->green = color_picker->cross_hairs_color->green;
+                color_picker->selected_color_in_griffl->blue = color_picker->cross_hairs_color->blue;
+                color_picker->selected_color_in_griffl->alpha = color_picker->cross_hairs_color->alpha;
             }
         }
         break;
@@ -159,14 +204,8 @@ static void color_picker_render_vertical_color_selector(color_picker_t * color_p
     for (int i = 0; i < COLOR_BAR_HEIGHT; i++) {
         SDL_SetRenderDrawColor(color_picker->renderer, (int)red, (int)green, (int)blue, 255);
 
-        SDL_Rect r;
-        r.x = 0;
-        r.y = i;
-        r.w = COLOR_BAR_WIDTH;
-        r.h = 1;
-
         blue = i <= SEGMENTED ? blue + NUM : blue;
-        red = (i >= SEGMENTED && i < 2 * SEGMENTED) ? red - NUM : red;
+        red = i >= SEGMENTED && i < 2 * SEGMENTED ? red - NUM : red;
         green = i >= 2 * SEGMENTED && i < 3 * SEGMENTED ? green + NUM : green;
         blue = i >= 3 * SEGMENTED && i < 4 * SEGMENTED ? blue - NUM : blue;
         red = i >= 4 * SEGMENTED && i < 5 * SEGMENTED ? red + NUM : red;
@@ -176,11 +215,10 @@ static void color_picker_render_vertical_color_selector(color_picker_t * color_p
         green = green > 255.0 ? 255 : round(green);
         blue = blue > 255.0 ? 255 : round(blue);
 
-        red = red < 0 ? 0 : round(red);
-        green = green < 0 ? 0 : round(green);
-        blue = blue < 0 ? 0 : round(blue);
-
-        SDL_RenderFillRect(color_picker->renderer, &r);
+        red = red < 0.0 ? 0.0 : round(red);
+        green = green < 0.0 ? 0.0 : round(green);
+        blue = blue < 0.0 ? 0.0 : round(blue);
+        SDL_RenderDrawLine(color_picker->renderer, 0, i, COLOR_BAR_WIDTH, i);
     }
 }
 
@@ -227,18 +265,17 @@ static void color_picker_position_color(color_picker_t * color_picker) {
         tmpGreen = tmpGreen < 0 ? 0 : round(tmpGreen);
         tmpBlue = tmpBlue < 0 ? 0 : round(tmpBlue);
     }
-    color_set_red(color_picker->selected_color, tmpRed);
-    color_set_green(color_picker->selected_color, tmpGreen);
-    color_set_blue(color_picker->selected_color, tmpBlue);
+    color_picker->selected_color->red = tmpRed;
+    color_picker->selected_color->green = tmpGreen;
+    color_picker->selected_color->blue = tmpBlue;
 }
 
 static void color_picker_color_square(color_picker_t * color_picker) {
     int topLeft = COLOR_BAR_WIDTH + COLOR_BAR_WIDTH_SPACE;
 
-    float xDifferenceRed = 255.0 - color_get_red(color_picker->selected_color);
-    float xDifferenceGreen = 255.0 - color_get_green(color_picker->selected_color);
-    ;
-    float xDifferenceBlue = 255.0 - color_get_blue(color_picker->selected_color);
+    float xDifferenceRed = 255.0 - color_picker->selected_color->red;
+    float xDifferenceGreen = 255.0 - color_picker->selected_color->green;
+    float xDifferenceBlue = 255.0 - color_picker->selected_color->blue;
 
     float xRedDelta = xDifferenceRed / COLOR_BAR_HEIGHT;
     float xGreenDelta = xDifferenceGreen / COLOR_BAR_HEIGHT;
@@ -345,6 +382,60 @@ static void color_picker_color_square_cross_hairs(color_picker_t * color_picker)
     rbh.h = 1;
 
     SDL_RenderFillRect(color_picker->renderer, &rbh);
+}
+
+static void color_picker_color_of_cross_hairs(color_picker_t * color_picker) {
+    float xDifferenceRed = 255.0 - color_picker->selected_color->red;
+    float xDifferenceGreen = 255.0 - color_picker->selected_color->green;
+    float xDifferenceBlue = 255.0 - color_picker->selected_color->blue;
+
+    float xRedDelta = xDifferenceRed / COLOR_BAR_HEIGHT;
+    float xGreenDelta = xDifferenceGreen / COLOR_BAR_HEIGHT;
+    float xBlueDelta = xDifferenceBlue / COLOR_BAR_HEIGHT;
+
+    xRedDelta = xDifferenceRed == 0 ? 0 : xRedDelta;
+    xGreenDelta = xDifferenceGreen == 0 ? 0 : xGreenDelta;
+    xBlueDelta = xDifferenceBlue == 0 ? 0 : xBlueDelta;
+
+    float yDifferenceRed = 255.0;
+    float yDifferenceGreen = 255.0;
+    float yDifferenceBlue = 255.0;
+
+    float yRedDelta = yDifferenceRed / COLOR_BAR_HEIGHT;
+    float yGreenDelta = yDifferenceGreen / COLOR_BAR_HEIGHT;
+    float yBlueDelta = yDifferenceBlue / COLOR_BAR_HEIGHT;
+
+    float currentRed = 255.0;
+    float currentGreen = 255.0;
+    float currentBlue = 255.0;
+
+    for (int y = 0; y < COLOR_BAR_HEIGHT; y++) {
+        for (int x = 0; x < COLOR_BAR_HEIGHT; x++) {
+
+            if (x == color_picker->mouse_position.x - COLOR_BAR_WIDTH - COLOR_BAR_WIDTH_SPACE &&
+                y == color_picker->mouse_position.y) {
+                color_picker->cross_hairs_color->red = currentRed;
+                color_picker->cross_hairs_color->green = currentGreen;
+                color_picker->cross_hairs_color->blue = currentBlue;
+                return;
+            }
+
+            currentRed -= xRedDelta;
+            currentGreen -= xGreenDelta;
+            currentBlue -= xBlueDelta;
+
+            currentRed = currentRed > 255.0 ? 255 : currentRed;
+            currentGreen = currentGreen > 255.0 ? 255 : currentGreen;
+            currentBlue = currentBlue > 255.0 ? 255 : currentBlue;
+
+            currentRed = currentRed < 0 ? 0 : currentRed;
+            currentGreen = currentGreen < 0 ? 0 : currentGreen;
+            currentBlue = currentBlue < 0 ? 0 : currentBlue;
+        }
+        currentRed = 255 - (yRedDelta * (y + 1));
+        currentGreen = 255 - (yGreenDelta * (y + 1));
+        currentBlue = 255 - (yBlueDelta * (y + 1));
+    }
 }
 
 // Checks if mouse position is within bounds of specific zone
