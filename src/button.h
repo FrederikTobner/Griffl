@@ -1,7 +1,7 @@
 #ifndef BUTTON_H_
 #define BUTTON_H_
 
-#include "SDL.h"
+#include "../external/SDL2/include/SDL.h"
 
 #include "texture.h"
 

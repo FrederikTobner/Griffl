@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <SDL.h>
+#include "../external/SDL2/include/SDL.h"
 
 #include "color_picker.h"
 #include "fonts.h"
@@ -211,11 +211,14 @@ static void griffl_application_handle_event(griffl_application_t * griffl_applic
         if (event.button.button == SDL_BUTTON_LEFT) {
             input_state_handle_up(griffl_application->input_state, LEFT_MOUSE_BUTTON);
         }
+        toolbar_handle_mouse_event(griffl_application->toolbar, &event);
         break;
     case SDL_MOUSEBUTTONDOWN:
         if (event.button.button == SDL_BUTTON_LEFT) {
             input_state_handle_down(griffl_application->input_state, LEFT_MOUSE_BUTTON);
         }
+        toolbar_handle_mouse_event(griffl_application->toolbar, &event);
+        break;
     case SDL_MOUSEMOTION:
         {
             int32_t mouseX = event.motion.x;

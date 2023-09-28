@@ -1,7 +1,7 @@
 #ifndef FONT_MANAGER_H_
 #define FONT_MANAGER_H_
 
-#include <SDL_ttf.h>
+#include "../external/SDL_ttf/SDL_ttf.h"
 
 typedef struct {
         TTF_Font * material_icons;

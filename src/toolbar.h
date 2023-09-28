@@ -1,7 +1,7 @@
 #ifndef TOOLBAR_H_
 #define TOOLBAR_H_
 
-#include <SDL.h>
+#include "../external/SDL2/include/SDL.h"
 
 #include "color_picker.h"
 #include "fonts.h"

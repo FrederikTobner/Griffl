@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <SDL.h>
+#include "../external/SDL2/include/SDL.h"
 
 #include "color.h"
 #include "fonts.h"

@@ -1,7 +1,7 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
-#include <SDL.h>
+#include "../external/SDL2/include/SDL.h"
 
 #include <stdint.h>
 

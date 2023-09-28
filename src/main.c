@@ -1,7 +1,7 @@
 // SDL dependencies
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
+#include "../external/SDL2/include/SDL.h"
+#include "../external/SDL_image/SDL_image.h"
+#include "../external/SDL_ttf/SDL_ttf.h"
 // Standard library dependencies
 #include <stdbool.h>
 #include <stdio.h>

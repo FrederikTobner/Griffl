@@ -106,16 +106,16 @@ bool button_handle_event(button_t * button, SDL_Event * e) {
             // Set mouse over sprite
             switch (e->type) {
             case SDL_MOUSEMOTION:
+                if(button->current_state != BUTTON_STATE_MOUSE_DOWN) {
                 button->current_state = BUTTON_STATE_MOUSE_OVER_MOTION;
+                }
                 button->buttonBorderColor = button->buttonBorderColorMouseOver;
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
                 button->current_state = BUTTON_STATE_MOUSE_DOWN;
                 button->buttonBorderColor = button->buttonBorderColorOutside;
-                return true;
                 break;
-
             case SDL_MOUSEBUTTONUP:
                 {
                     if (button->current_state == BUTTON_STATE_MOUSE_DOWN) {
@@ -129,6 +129,20 @@ bool button_handle_event(button_t * button, SDL_Event * e) {
             }
         }
     }
+    switch(button->current_state) {
+            case BUTTON_STATE_MOUSE_OUT:
+                SDL_Log("BUTTON_STATE_MOUSE_OUT\n");
+                break;
+            case BUTTON_STATE_MOUSE_OVER_MOTION:
+                SDL_Log("BUTTON_STATE_MOUSE_OVER_MOTION\n");
+                break;
+            case BUTTON_STATE_MOUSE_DOWN:
+                SDL_Log("BUTTON_STATE_MOUSE_DOWN\n");
+                break;
+            case BUTTON_STATE_MOUSE_UP:
+                SDL_Log("BUTTON_STATE_MOUSE_UP\n");
+                break;
+        }
     return false;
 }
 
